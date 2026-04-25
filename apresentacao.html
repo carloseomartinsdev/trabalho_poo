@@ -7,23 +7,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.min.css">
     <style>
-        :root {
-            --azul: #1a73e8;
-            --verde: #0f9d58;
-            --vermelho: #ea4335;
-            --roxo: #7b1fa2;
-            --cinza: #5f6368;
-        }
+        :root { --azul: #1a73e8; --verde: #0f9d58; --vermelho: #ea4335; --roxo: #7b1fa2; --cinza: #5f6368; }
         .reveal h1, .reveal h2, .reveal h3 { color: var(--azul); font-family: 'Segoe UI', sans-serif; }
         .reveal { font-family: 'Segoe UI', sans-serif; font-size: 28px; }
         .reveal .slide-number { font-size: 14px; }
         .capa h1 { font-size: 1.8em; margin-bottom: 0.2em; }
         .capa h3 { color: var(--cinza); font-weight: 400; }
         .tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.7em; color: #fff; margin: 2px; }
-        .tag-azul { background: var(--azul); }
-        .tag-verde { background: var(--verde); }
-        .tag-roxo { background: var(--roxo); }
-        .tag-vermelho { background: var(--vermelho); }
+        .tag-azul { background: var(--azul); } .tag-verde { background: var(--verde); }
+        .tag-roxo { background: var(--roxo); } .tag-vermelho { background: var(--vermelho); }
         .destaque { background: #e8f0fe; border-left: 4px solid var(--azul); padding: 15px 20px; border-radius: 6px; margin: 15px 0; text-align: left; }
         .destaque-verde { background: #e6f4ea; border-left: 4px solid var(--verde); padding: 15px 20px; border-radius: 6px; margin: 15px 0; text-align: left; }
         .destaque-vermelho { background: #fce8e6; border-left: 4px solid var(--vermelho); padding: 15px 20px; border-radius: 6px; margin: 15px 0; text-align: left; }
@@ -42,13 +34,16 @@
         .numero-verde { font-size: 2.5em; font-weight: 700; color: var(--verde); }
         .numero-vermelho { font-size: 2.5em; font-weight: 700; color: var(--vermelho); }
         .formula { background: #f1f3f4; padding: 12px 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.85em; margin: 10px 0; }
+        .pergunta { font-size: 1.1em; color: var(--roxo); font-weight: 600; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 <div class="reveal">
 <div class="slides">
 
-    <!-- SLIDE 1: CAPA -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- CAPA -->
+    <!-- ═══════════════════════════════════════════════════ -->
     <section class="capa">
         <h1>🚛 Otimização de Rotas de Entrega</h1>
         <h3>CVRP — Capacitated Vehicle Routing Problem</h3>
@@ -69,84 +64,83 @@
         </p>
     </section>
 
-    <!-- SLIDE: CONTEXTO -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BLOCO 1: INTRODUÇÃO (~2 min) -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- SLIDE: O PROBLEMA -->
     <section>
-        <h2>🏢 1. Contexto</h2>
+        <h2>1. Introdução</h2>
         <br>
+        <p class="pergunta">Qual é o problema que estamos resolvendo?</p>
         <div class="destaque">
-            <strong>Problema:</strong> Uma empresa de logística em Fortaleza/CE precisa realizar entregas diárias
-            em 15 clientes, partindo de um centro de distribuição, usando 2 veículos com capacidade limitada.
-            As rotas são definidas manualmente, sem critério de otimização.
+            Uma empresa de logística em <strong>Fortaleza/CE</strong> realiza entregas diárias
+            para <strong>15 clientes</strong>, partindo de um centro de distribuição, usando
+            <strong>2 veículos</strong> com capacidade de 500kg cada.<br><br>
+            As rotas são definidas <strong>manualmente</strong>, sem critério de otimização.
         </div>
         <br>
         <div class="cols">
-            <div class="col card" style="text-align:center;">
-                <div class="icone">📦</div>
-                <strong>15 clientes</strong><br>
-                <small>demanda total: 973 kg</small>
+            <div class="col card" style="text-align:center;"><div class="icone">📦</div><strong>15 clientes</strong><br><small>demanda de teste: 973 kg*</small></div>
+            <div class="col card" style="text-align:center;"><div class="icone">🚛</div><strong>2 veículos</strong><br><small>capacidade: 500kg cada</small></div>
+            <div class="col card" style="text-align:center;"><div class="icone">🗺️</div><strong>Distâncias reais</strong><br><small>API OSRM (rotas rodoviárias)</small></div>
+        </div>
+        <br>
+        <small style="color:var(--cinza);">* A demanda de 973 kg foi utilizada para fins de teste e simulação. Na prática, a demanda varia diariamente.</small>
+    </section>
+
+    <!-- SLIDE: MAPA DOS CLIENTES -->
+    <section>
+        <p class="pergunta">Onde estão os clientes?</p>
+        <br>
+        <div class="cols">
+            <div class="col" style="flex:1.4; text-align:center;">
+                <img src="mapa_clientes.png" alt="Mapa dos clientes em Fortaleza/CE" style="max-height: 440px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
             </div>
-            <div class="col card" style="text-align:center;">
-                <div class="icone">🚛</div>
-                <strong>2 veículos</strong><br>
-                <small>capacidade: 500kg cada</small>
-            </div>
-            <div class="col card" style="text-align:center;">
-                <div class="icone">🎯</div>
-                <strong>Objetivo</strong><br>
-                <small>Minimizar distância total</small>
+            <div class="col" style="flex:1;">
+                <div class="destaque" style="margin-top:20px;">
+                    <strong>📍 16 pontos reais</strong><br>
+                    1 depósito + 15 clientes<br><br>
+                    <strong>Região:</strong> Fortaleza/CE e região metropolitana<br><br>
+                    <strong>Coordenadas:</strong> GPS reais<br><br>
+                    <strong>Distâncias:</strong> Rotas rodoviárias via API OSRM
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- SLIDE: PARÂMETROS DE CUSTO -->
+    <!-- SLIDE: POR QUE IMPORTA -->
     <section>
-        <h2>💰 Parâmetros de Custo</h2>
+        <p class="pergunta">Por que isso importa para o negócio?</p>
         <br>
         <table>
-            <tr><th>Parâmetro</th><th>Valor</th><th>Descrição</th></tr>
-            <tr><td><strong>⛽ Custo por km</strong></td><td style="text-align:right;"><strong>R$ 3,50</strong></td><td>Combustível + manutenção + depreciação</td></tr>
-            <tr><td><strong>👤 Salário/motorista</strong></td><td style="text-align:right;"><strong>R$ 3.000,00/mês</strong></td><td>Custo fixo mensal por veículo</td></tr>
-            <tr><td><strong>📅 Dias úteis/mês</strong></td><td style="text-align:right;"><strong>22</strong></td><td>Base para cálculo mensal</td></tr>
-            <tr><td><strong>🚛 Frota atual</strong></td><td style="text-align:right;"><strong>2 veículos</strong></td><td>Capacidade: 500kg cada</td></tr>
-            <tr><td><strong>📦 Demanda total</strong></td><td style="text-align:right;"><strong>973 kg</strong></td><td>15 clientes (38–114kg cada)</td></tr>
-            <tr><td><strong>🗺️ Distâncias</strong></td><td style="text-align:right;"><strong>OSRM API</strong></td><td>Rotas rodoviárias reais (não euclidianas)</td></tr>
+            <tr><th>Parâmetro</th><th>Valor</th><th>Impacto</th></tr>
+            <tr><td>⛽ Custo por km</td><td style="text-align:right;"><strong>R$ 3,50</strong></td><td>Combustível + manutenção + depreciação</td></tr>
+            <tr><td>👤 Salário/motorista</td><td style="text-align:right;"><strong>R$ 3.000/mês</strong></td><td>Custo fixo: cada veículo = 1 motorista</td></tr>
+            <tr><td>📅 Dias úteis/mês</td><td style="text-align:right;"><strong>22</strong></td><td>Base para projeção financeira</td></tr>
+            <tr><td>🕐 Vel. média Fortaleza</td><td style="text-align:right;"><strong>25 km/h</strong></td><td>Tempo no trânsito = custo oculto</td></tr>
         </table>
         <br>
-        <div class="destaque">
-            <strong>Custo fixo mensal (2 motoristas):</strong> 2 × R$ 3.000 = <strong>R$ 6.000,00</strong><br>
-            <strong>Custo variável:</strong> distância total diária × R$ 3,50 × 22 dias
-        </div>
-    </section>
-
-    <!-- SLIDE: POR QUE OTIMIZAR -->
-    <section>
-        <h2>🎯 Por que otimizar rotas?</h2>
-        <br>
-        <div class="cols">
-            <div class="col">
-                <div class="card" style="text-align:center;"><div class="icone">⛽</div><strong>Combustível</strong><br>Menos km = menos custo variável</div>
-                <div class="card" style="text-align:center;"><div class="icone">⏱️</div><strong>Tempo</strong><br>Rotas menores = mais entregas/dia</div>
-            </div>
-            <div class="col">
-                <div class="card" style="text-align:center;"><div class="icone">🌱</div><strong>Sustentabilidade</strong><br>Menor emissão de CO₂</div>
-                <div class="card" style="text-align:center;"><div class="icone">💲</div><strong>Escala</strong><br>Mais veículos = mais salários fixos</div>
-            </div>
-        </div>
-        <br>
         <div class="destaque-verde">
-            <strong>Pergunta-chave:</strong> Compensa adicionar um 3º veículo (+ R$ 3.000/mês)
-            se a distância total diminuir?
+            <strong>Custo fixo mensal:</strong> 2 motoristas × R$ 3.000 = <strong>R$ 6.000</strong><br>
+            <strong>Custo variável:</strong> distância diária × R$ 3,50 × 22 dias<br>
+            <strong>Custo oculto:</strong> tempo do motorista no trânsito (R$ 17,05/hora)
         </div>
     </section>
 
-    <!-- SLIDE: MODELAGEM -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BLOCO 2: METODOLOGIA (~3 min) -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- SLIDE: COMO RESOLVEMOS -->
     <section>
-        <h2>📐 2. Modelagem — CVRP</h2>
+        <h2>2. Metodologia</h2>
         <br>
+        <p class="pergunta">Como transformamos o problema em um modelo matemático?</p>
         <div class="destaque">
             <strong>Técnica:</strong> Programação Inteira (PI)<br>
-            <strong>Tipo:</strong> CVRP — Capacitated Vehicle Routing Problem<br>
-            <strong>Distâncias:</strong> Calculadas via API OSRM (rotas rodoviárias reais)
+            <strong>Modelo:</strong> CVRP — Capacitated Vehicle Routing Problem<br>
+            <strong>Distâncias:</strong> Calculadas via API OSRM (rotas rodoviárias reais de Fortaleza)
         </div>
         <br>
         <table>
@@ -159,151 +153,131 @@
 
     <!-- SLIDE: RESTRIÇÕES -->
     <section>
-        <h2>🔒 Restrições do Modelo</h2>
+        <p class="pergunta">Quais regras o modelo precisa respeitar?</p>
         <br>
         <ol>
             <li>Cada cliente é visitado <strong>exatamente 1 vez</strong></li>
-            <li>Cada veículo <strong>sai e retorna</strong> ao CD</li>
-            <li><strong>Conservação de fluxo</strong> — se entra, sai</li>
-            <li><strong>Capacidade</strong> máxima de 500kg por veículo</li>
+            <li>Cada veículo <strong>sai e retorna</strong> ao centro de distribuição</li>
+            <li><strong>Conservação de fluxo</strong> — se um veículo entra, ele precisa sair</li>
+            <li><strong>Capacidade máxima</strong> de 500kg por veículo</li>
             <li><strong>Eliminação de sub-rotas</strong> (Miller-Tucker-Zemlin)</li>
         </ol>
         <br>
         <div class="formula">
             MTZ: u[i] − u[j] + N × x[i][j][k] ≤ N − 1 &nbsp;&nbsp; ∀ i,j ∈ clientes, i ≠ j
         </div>
+        <br>
+        <div class="destaque">
+            <strong>Por que MTZ?</strong> Sem essa restrição, o solver poderia criar "mini-rotas"
+            desconectadas do depósito. A MTZ garante que todas as rotas passem pelo CD.
+        </div>
     </section>
 
-    <!-- SLIDE: RESULTADOS -->
+    <!-- SLIDE: ROTAS ENCONTRADAS -->
     <section>
-        <h2>📊 3. Resultados</h2>
+        <p class="pergunta">O que o modelo encontrou como solução ótima?</p>
+        <br>
+        <div class="cols">
+            <div class="col">
+                <div class="card" style="border-left: 4px solid var(--verde);">
+                    <strong style="color:var(--verde);">🟢 Veículo 1 (8 clientes)</strong><br><br>
+                    CD → C6 → C7 → C8 → C11 → C12 → C9 → C1 → C13 → CD<br>
+                    Carga: <strong>494/500 kg</strong><br>
+                    Distância: <strong>91.17 km</strong><br>
+                    Custo: <strong>R$ 319,10</strong>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card" style="border-left: 4px solid var(--roxo);">
+                    <strong style="color:var(--roxo);">🟣 Veículo 2 (7 clientes)</strong><br><br>
+                    CD → C4 → C3 → C10 → C14 → C15 → C2 → C5 → CD<br>
+                    Carga: <strong>479/500 kg</strong><br>
+                    Distância: <strong>100.34 km</strong><br>
+                    Custo: <strong>R$ 351,19</strong>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="destaque">
+            <strong>Distância total otimizada:</strong> 191.51 km/dia
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>Custo diário (km):</strong> R$ 670,28
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BLOCO 3: INSIGHTS (~3 min) -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- SLIDE: RESULTADO PRINCIPAL -->
+    <section>
+        <h2>3. Resultados e Insights</h2>
+        <br>
+        <p class="pergunta">Quanto a empresa economiza com a otimização?</p>
         <br>
         <div class="cols">
             <div class="col" style="text-align:center;">
                 <div class="card">
-                    <small>Distância Manual</small><br>
+                    <small>Rota Manual</small><br>
                     <span class="numero-vermelho">343.43 km</span><br>
-                    <small style="color:var(--cinza);">R$ 1.202,01 / viagem</small>
+                    <small style="color:var(--cinza);">R$ 1.202,01/dia</small>
                 </div>
             </div>
             <div class="col" style="text-align:center;">
                 <div class="card">
-                    <small>Distância Otimizada</small><br>
+                    <small>Rota Otimizada</small><br>
                     <span class="numero-verde">191.51 km</span><br>
-                    <small style="color:var(--cinza);">R$ 670,28 / viagem</small>
+                    <small style="color:var(--cinza);">R$ 670,28/dia</small>
                 </div>
             </div>
             <div class="col" style="text-align:center;">
                 <div class="card">
                     <small>Economia</small><br>
                     <span class="numero-grande">44.2%</span><br>
-                    <small style="color:var(--cinza);">R$ 531,73 / viagem</small>
+                    <small style="color:var(--cinza);">R$ 531,73/dia</small>
                 </div>
             </div>
         </div>
         <br>
         <div class="destaque-verde">
-            <strong>💰 Impacto financeiro (R$ 3,50/km + R$ 3.000/motorista):</strong><br>
-            Economia de <strong>R$ 531,73 por viagem</strong> →
-            <strong>R$ 11.698,06/mês</strong> →
-            <strong>R$ 140.376,72/ano</strong><br>
-            <small style="color:var(--cinza);">Custo mensal total: Manual R$ 32.444,22 vs Otimizado R$ 20.746,16</small>
+            <strong>💰 R$ 531,73/dia → R$ 11.698/mês → R$ 140.376/ano</strong><br>
+            <small>Custo mensal total: Manual R$ 32.444 vs Otimizado R$ 20.746</small>
         </div>
     </section>
 
-    <!-- SLIDE: ROTAS OTIMIZADAS -->
+    <!-- SLIDE: TEMPO NO TRÂNSITO -->
     <section>
-        <h2>🗺️ Rotas Otimizadas</h2>
-        <br>
-        <div class="cols">
-            <div class="col">
-                <div class="card" style="border-left: 4px solid var(--verde);">
-                    <strong style="color:var(--verde);">🟢 Veículo 1</strong><br><br>
-                    CD → C6 → C7 → C8 → C11 → C12 → C9 → C1 → C13 → CD<br>
-                    Carga: 494/500 kg<br>
-                    Distância: 91.17 km<br>
-                    <strong style="color:var(--verde);">Custo: R$ 319,10</strong>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card" style="border-left: 4px solid var(--roxo);">
-                    <strong style="color:var(--roxo);">🟣 Veículo 2</strong><br><br>
-                    CD → C4 → C3 → C10 → C14 → C15 → C2 → C5 → CD<br>
-                    Carga: 479/500 kg<br>
-                    Distância: 100.34 km<br>
-                    <strong style="color:var(--roxo);">Custo: R$ 351,19</strong>
-                </div>
-            </div>
-        </div>
-        <br>
-        <div class="destaque">
-            <strong>Custo diário (km):</strong> R$ 670,28
-            &nbsp;&nbsp;|&nbsp;&nbsp;
-            <strong>Salários (2 motoristas):</strong> R$ 6.000/mês
-            &nbsp;&nbsp;|&nbsp;&nbsp;
-            <strong>Custo mensal total:</strong> R$ 20.746,16
-        </div>
-    </section>
-
-    <!-- SLIDE: COMPARAÇÃO VISUAL -->
-    <section>
-        <h2>🔄 Manual vs Otimizada</h2>
-        <br>
-        <div class="cols">
-            <div class="col card" style="text-align:center;">
-                <h3 style="color:var(--vermelho);">❌ Rota Manual</h3>
-                <p style="font-size:0.8em;">343.43 km/dia → R$ 1.202,01<br>Clientes distribuídos sem critério.</p>
-            </div>
-            <div class="col card" style="text-align:center;">
-                <h3 style="color:var(--verde);">✅ Rota Otimizada</h3>
-                <p style="font-size:0.8em;">191.51 km/dia → R$ 670,28<br>Clientes agrupados por proximidade geográfica.</p>
-            </div>
-        </div>
-        <br>
-        <div class="destaque-verde">
-            <strong>Economia de 44.2%</strong> na distância percorrida →
-            <strong>R$ 140.376,72/ano</strong> em custos operacionais
-        </div>
-    </section>
-
-    <!-- SLIDE: INSIGHTS -->
-    <section>
-        <h2>💡 Insights Descobertos</h2>
-        <br>
-        <div class="destaque">
-            <strong>🔍 Decisão subótima:</strong> A rota manual gera 44.2% mais distância.
-            A otimização matemática comprova economia de R$ 140 mil/ano.
-        </div>
-        <div class="destaque-verde">
-            <strong>⚖️ Trade-off revelado:</strong> Adicionar um 3º veículo reduz apenas 1.4% da distância,
-            mas custa R$ 3.000/mês a mais — <strong>não compensa</strong>.
-        </div>
-        <div class="destaque-roxo">
-            <strong>🔧 Gargalo escondido:</strong> A capacidade dos veículos (494/500 e 479/500 kg)
-            é a restrição que mais impacta a distribuição dos clientes.
-        </div>
-    </section>
-
-    <!-- SLIDE: ANÁLISE DE SENSIBILIDADE - RESUMO -->
-    <section>
-        <h2>🔬 Análise de Sensibilidade</h2>
+        <p class="pergunta">E se considerarmos o tempo do motorista no trânsito?</p>
         <br>
         <table>
-            <tr><th>Cenário</th><th>Descrição</th><th>Resultado</th></tr>
-            <tr><td><span class="tag tag-azul">A</span></td><td>3 veículos em vez de 2</td><td>Redução de 1.4% na distância</td></tr>
-            <tr><td><span class="tag tag-verde">B</span></td><td>+1 cliente novo (C16)</td><td>Distância: 147.06 km (-23.2%)</td></tr>
-            <tr><td><span class="tag tag-vermelho">C</span></td><td>Apenas 1 veículo</td><td>INVIÁVEL (973kg > 500kg)</td></tr>
+            <tr><th>Cenário de trânsito</th><th>Vel. Média</th><th>Tempo Manual</th><th>Tempo Otimizado</th><th>Economia</th></tr>
+            <tr>
+                <td><span class="tag tag-vermelho">Pico (7h-9h)</span></td>
+                <td>20 km/h</td><td>~17.2h</td><td>~9.6h</td>
+                <td style="color:var(--verde); font-weight:bold;">~7.6h/dia</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-azul">Média do dia</span></td>
+                <td>25 km/h</td><td>~13.7h</td><td>~7.7h</td>
+                <td style="color:var(--verde); font-weight:bold;">~6.1h/dia</td>
+            </tr>
+            <tr>
+                <td><span class="tag tag-verde">Fora do pico</span></td>
+                <td>35 km/h</td><td>~9.8h</td><td>~5.5h</td>
+                <td style="color:var(--verde); font-weight:bold;">~4.3h/dia</td>
+            </tr>
         </table>
         <br>
-        <div class="destaque">
-            <strong>Objetivo:</strong> Avaliar se mudanças na frota ou na demanda
-            alteram a solução ótima e o custo total da operação.
+        <div class="destaque-verde">
+            <strong>Economia combinada (distância + tempo):</strong>
+            ~R$ 634/dia → ~R$ 13.958/mês → <strong>~R$ 167.498/ano</strong><br>
+            <small style="color:var(--cinza);">19% a mais que a economia calculada apenas pela distância</small>
         </div>
     </section>
 
-    <!-- SLIDE: CENÁRIO A - PARTE 1: DISTÂNCIAS -->
+    <!-- SLIDE: 3 VEÍCULOS - DISTÂNCIA -->
     <section>
-        <h2>🔬 Cenário A: 3 Veículos — Distâncias</h2>
+        <p class="pergunta">E se adicionarmos um 3º veículo? A distância diminui?</p>
         <br>
         <div class="cols">
             <div class="col" style="text-align:center;">
@@ -330,15 +304,14 @@
         </div>
         <br>
         <div class="destaque">
-            <strong>🧠 Observação:</strong> Com 3 veículos, a distância cai apenas 1.4%.
-            Isso ocorre porque os 2 veículos já conseguem distribuir os clientes de forma
-            quase ótima geograficamente. O 3º veículo agrega pouco valor em termos de rota.
+            Sim, a distância cai — mas <strong>apenas 1.4%</strong>. Os 2 veículos já distribuem
+            os clientes de forma quase ótima. O 3º agrega pouco valor em termos de rota.
         </div>
     </section>
 
-    <!-- SLIDE: CENÁRIO A - PARTE 2: ANÁLISE FINANCEIRA -->
+    <!-- SLIDE: 3 VEÍCULOS - FINANCEIRO -->
     <section>
-        <h2>🔬 Cenário A: 3 Veículos — Análise Financeira</h2>
+        <p class="pergunta">Mas essa redução compensa o custo do 3º motorista?</p>
         <br>
         <div class="cols">
             <div class="col" style="text-align:center;">
@@ -358,22 +331,21 @@
             <div class="col" style="text-align:center;">
                 <div class="card">
                     <small>Saldo mensal</small><br>
-                    <span class="numero-vermelho" style="font-size:2em;">- R$ 2.797,60</span><br>
+                    <span class="numero-vermelho" style="font-size:2em;">- R$ 2.797</span><br>
                     <small style="color:var(--cinza);">❌ NÃO COMPENSA</small>
                 </div>
             </div>
         </div>
         <br>
         <div class="destaque-vermelho">
-            <strong>❌ Veredicto:</strong> A economia de R$ 202,40/mês em km <strong>não compensa</strong>
-            o custo extra de R$ 3.000/mês do 3º motorista.<br>
-            Custo mensal total: 2 veículos <strong>R$ 20.746,16</strong> vs 3 veículos <strong>R$ 23.543,76</strong>
+            <strong>❌ Não.</strong> A economia de R$ 202/mês em km não cobre o salário de R$ 3.000/mês.<br>
+            Custo mensal: 2 veículos <strong>R$ 20.746</strong> vs 3 veículos <strong>R$ 23.543</strong>
         </div>
     </section>
 
-    <!-- SLIDE: CENÁRIO C - 1 VEÍCULO -->
+    <!-- SLIDE: 1 VEÍCULO -->
     <section>
-        <h2>🔬 Cenário C: Apenas 1 Veículo</h2>
+        <p class="pergunta">E se reduzirmos para apenas 1 veículo?</p>
         <br>
         <div class="cols">
             <div class="col" style="text-align:center;">
@@ -393,19 +365,82 @@
         </div>
         <br>
         <div class="destaque-vermelho">
-            <strong>⚠️ INVIÁVEL!</strong> A demanda total (973 kg) excede a capacidade
-            de 1 veículo (500 kg). A <strong>frota mínima de 2 veículos é necessária</strong>.
+            <strong>⚠️ Impossível.</strong> A demanda de teste (973 kg) excede a capacidade
+            de 1 veículo (500 kg). A frota mínima de 2 veículos é obrigatória.
         </div>
         <br>
         <div class="destaque">
-            <strong>🔑 Insight:</strong> A capacidade dos veículos é o gargalo escondido
-            que mais impacta a distribuição dos clientes entre as rotas.
+            <strong>Gargalo escondido:</strong> A capacidade dos veículos (494/500 e 479/500 kg)
+            é a restrição que mais limita a otimização das rotas.
+        </div>
+    </section>
+
+    <!-- SLIDE: JANELA DE DECISÃO -->
+    <section>
+        <p class="pergunta">A demanda é fixa? O que acontece se ela variar?</p>
+        <br>
+        <table>
+            <tr><th>Faixa de Demanda</th><th>Veículos</th><th>Situação</th></tr>
+            <tr>
+                <td><strong>Até ~950 kg</strong></td>
+                <td><span class="tag tag-verde">2 veículos</span></td>
+                <td>Viável, com folga de capacidade</td>
+            </tr>
+            <tr>
+                <td><strong>950 – 1.000 kg</strong></td>
+                <td><span class="tag tag-azul">2 veículos</span></td>
+                <td>Viável, mas rotas apertadas (~98% capacidade)</td>
+            </tr>
+            <tr>
+                <td><strong>Acima de 1.000 kg</strong></td>
+                <td><span class="tag tag-vermelho">3 veículos</span></td>
+                <td><strong>OBRIGATÓRIO</strong> — 2 veículos não comportam</td>
+            </tr>
+        </table>
+        <br>
+        <div class="destaque">
+            <strong>📦 Demanda de teste:</strong> 973 kg — folga de apenas <strong>27 kg</strong> (2.7%)<br>
+            Se a demanda crescer 28 kg, o 3º veículo se torna <strong>obrigatório</strong>.
+        </div>
+        <br>
+        <div class="destaque-roxo">
+            <strong>💡 Insight estratégico:</strong> O 3º veículo não se justifica por economia de km
+            (prejuízo de R$ 2.797/mês), mas pode se tornar necessário por <strong>viabilidade operacional</strong>
+            se a demanda ultrapassar 1.000 kg. A empresa deve monitorar a demanda diária.
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BLOCO 4: CONCLUSÃO (~2 min) -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- SLIDE: RESUMO DOS INSIGHTS -->
+    <section>
+        <h2>4. Conclusão</h2>
+        <br>
+        <p class="pergunta">O que aprendemos com este projeto?</p>
+        <br>
+        <div class="destaque">
+            <strong>🔍 Decisão subótima:</strong> A rota manual desperdiça <strong>44.2%</strong> da distância.
+            A otimização gera economia de <strong>R$ 140 mil/ano</strong> só em km.
+        </div>
+        <div class="destaque-verde">
+            <strong>⏱️ Custo oculto:</strong> Considerando o tempo no trânsito de Fortaleza,
+            a economia sobe para <strong>~R$ 167 mil/ano</strong> (19% a mais).
+        </div>
+        <div class="destaque-vermelho">
+            <strong>⚖️ Trade-off:</strong> Adicionar um 3º veículo reduz apenas 1.4% da distância,
+            mas custa R$ 3.000/mês a mais. <strong>Não compensa.</strong>
+        </div>
+        <div class="destaque-roxo">
+            <strong>🔧 Gargalo:</strong> A capacidade dos veículos (~98% ocupada) é o fator
+            que mais limita a eficiência. Com 1 veículo, a operação é <strong>inviável</strong>.
         </div>
     </section>
 
     <!-- SLIDE: VALIDAÇÃO -->
     <section>
-        <h2>✅ 4. Validação</h2>
+        <p class="pergunta">Alguém da área validou esses resultados?</p>
         <br>
         <div class="card" style="border-left: 4px solid var(--verde);">
             <strong>Depoimento — [Nome, Cargo]</strong>
@@ -419,23 +454,24 @@
         </div>
     </section>
 
-    <!-- SLIDE: LIMITAÇÕES -->
+    <!-- SLIDE: LIMITAÇÕES E PRÓXIMOS PASSOS -->
     <section>
-        <h2>⚠️ Limitações e Próximos Passos</h2>
+        <p class="pergunta">Quais são as limitações e o que pode ser melhorado?</p>
         <br>
         <div class="cols">
             <div class="col">
                 <h3 style="color:var(--vermelho); font-size:0.9em;">Limitações</h3>
                 <ul style="font-size:0.85em;">
-                    <li>Distâncias OSRM (sem trânsito em tempo real)</li>
-                    <li>Sem janelas de horário</li>
+                    <li>Distâncias OSRM — sem trânsito em tempo real</li>
+                    <li>Sem janelas de horário para entregas</li>
                     <li>Custo por km fixo (sem variações)</li>
+                    <li>Velocidade média estimada (não medida)</li>
                 </ul>
             </div>
             <div class="col">
                 <h3 style="color:var(--verde); font-size:0.9em;">Próximos Passos</h3>
                 <ul style="font-size:0.85em;">
-                    <li>Integrar dados de trânsito em tempo real</li>
+                    <li>Integrar Google Maps API (trânsito real)</li>
                     <li>Incluir janelas de tempo (VRPTW)</li>
                     <li>Testar frota heterogênea</li>
                     <li>Avaliar heurísticas para escalar</li>
