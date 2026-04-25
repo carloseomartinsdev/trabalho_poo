@@ -1,0 +1,206 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 5. Modelagem CVRP — Programação Inteira (PuLP)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "NameError",
+     "evalue": "name 'N' is not defined",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[31m---------------------------------------------------------------------------\u001b[39m",
+      "\u001b[31mNameError\u001b[39m                                 Traceback (most recent call last)",
+      "\u001b[36mCell\u001b[39m\u001b[36m \u001b[39m\u001b[32mIn[1]\u001b[39m\u001b[32m, line 1\u001b[39m\n\u001b[32m----> \u001b[39m\u001b[32m1\u001b[39m clientes = \u001b[38;5;28mlist\u001b[39m(\u001b[38;5;28mrange\u001b[39m(\u001b[32m1\u001b[39m, \u001b[43mN\u001b[49m))\n\u001b[32m      2\u001b[39m pontos = \u001b[38;5;28mlist\u001b[39m(\u001b[38;5;28mrange\u001b[39m(N))\n\u001b[32m      3\u001b[39m veiculos = \u001b[38;5;28mlist\u001b[39m(\u001b[38;5;28mrange\u001b[39m(N_VEICULOS))\n",
+      "\u001b[31mNameError\u001b[39m: name 'N' is not defined"
+     ]
+    }
+   ],
+   "source": [
+    "clientes = list(range(1, N))\n",
+    "pontos = list(range(N))\n",
+    "veiculos = list(range(N_VEICULOS))\n",
+    "\n",
+    "modelo = LpProblem('CVRP', LpMinimize)\n",
+    "\n",
+    "x = LpVariable.dicts('x', (pontos, pontos, veiculos), cat='Binary')\n",
+    "u = LpVariable.dicts('u', (clientes, veiculos), lowBound=1, upBound=N_CLIENTES, cat='Continuous')\n",
+    "\n",
+    "# FUNÇÃO OBJETIVO: minimizar distância total\n",
+    "modelo += lpSum(dist[i][j] * x[i][j][k] for i in pontos for j in pontos for k in veiculos if i != j)\n",
+    "\n",
+    "# RESTRIÇÃO 1: cada cliente visitado exatamente 1 vez\n",
+    "for j in clientes:\n",
+    "    modelo += lpSum(x[i][j][k] for i in pontos for k in veiculos if i != j) == 1\n",
+    "\n",
+    "# RESTRIÇÃO 2: cada veículo sai do CD no máximo 1 vez\n",
+    "for k in veiculos:\n",
+    "    modelo += lpSum(x[0][j][k] for j in clientes) <= 1\n",
+    "\n",
+    "# RESTRIÇÃO 3: cada veículo retorna ao CD no máximo 1 vez\n",
+    "for k in veiculos:\n",
+    "    modelo += lpSum(x[j][0][k] for j in clientes) <= 1\n",
+    "\n",
+    "# RESTRIÇÃO 4: conservação de fluxo\n",
+    "for k in veiculos:\n",
+    "    for j in clientes:\n",
+    "        modelo += lpSum(x[i][j][k] for i in pontos if i != j) == lpSum(x[j][i][k] for i in pontos if i != j)\n",
+    "\n",
+    "# RESTRIÇÃO 5: capacidade do veículo\n",
+    "for k in veiculos:\n",
+    "    modelo += lpSum(demandas[j] * lpSum(x[i][j][k] for i in pontos if i != j) for j in clientes) <= CAPACIDADE\n",
+    "\n",
+    "# RESTRIÇÃO 6: eliminação de sub-rotas (MTZ)\n",
+    "for k in veiculos:\n",
+    "    for i in clientes:\n",
+    "        for j in clientes:\n",
+    "            if i != j:\n",
+    "                modelo += u[i][k] - u[j][k] + N_CLIENTES * x[i][j][k] <= N_CLIENTES - 1"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 6. Resolução"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "modelo.solve(PULP_CBC_CMD(msg=1))\n",
+    "\n",
+    "print(f'Status: {LpStatus[modelo.status]}')\n",
+    "dist_otimizada = round(value(modelo.objective), 2)\n",
+    "print(f'Distância total otimizada: {dist_otimizada} km')\n",
+    "print(f'Custo diário (km): R$ {round(dist_otimizada * CUSTO_POR_KM, 2)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 7. Extração das Rotas"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cores = ['green', 'purple', 'orange', 'cyan', 'magenta']\n",
+    "\n",
+    "def extrair_rotas(x, pontos, clientes, veiculos):\n",
+    "    rotas = {}\n",
+    "    for k in veiculos:\n",
+    "        rota = [0]\n",
+    "        atual = 0\n",
+    "        while True:\n",
+    "            proximo = None\n",
+    "            for j in pontos:\n",
+    "                if j != atual and value(x[atual][j][k]) and value(x[atual][j][k]) > 0.5:\n",
+    "                    proximo = j\n",
+    "                    break\n",
+    "            if proximo is None or proximo == 0:\n",
+    "                rota.append(0)\n",
+    "                break\n",
+    "            rota.append(proximo)\n",
+    "            atual = proximo\n",
+    "        rotas[k] = rota\n",
+    "    return rotas\n",
+    "\n",
+    "rotas = extrair_rotas(x, pontos, clientes, veiculos)\n",
+    "\n",
+    "for k in veiculos:\n",
+    "    carga = sum(demandas[i] for i in rotas[k] if i != 0)\n",
+    "    rota_nomes = ' → '.join(nomes[i] for i in rotas[k])\n",
+    "    dist_rota = sum(dist[rotas[k][i]][rotas[k][i+1]] for i in range(len(rotas[k])-1))\n",
+    "    custo_rota = round(dist_rota * CUSTO_POR_KM, 2)\n",
+    "    print(f'Veículo {k+1}: {rota_nomes}')\n",
+    "    print(f'  Carga: {carga}/{CAPACIDADE} kg | Distância: {round(dist_rota, 2)} km | Custo: R$ {custo_rota}\\n')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 8. Visualização das Rotas Otimizadas"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(figsize=(10, 10))\n",
+    "\n",
+    "# CD\n",
+    "lat_cd, lon_cd = coordenadas_gps[0]\n",
+    "ax.scatter(lon_cd, lat_cd, c='red', s=200, zorder=5, marker='s', label='CD (Depósito)')\n",
+    "ax.annotate('CD', (lon_cd, lat_cd), textcoords='offset points', xytext=(8, 8), fontsize=10, fontweight='bold')\n",
+    "\n",
+    "# Clientes\n",
+    "for i in range(1, N):\n",
+    "    lat, lon = coordenadas_gps[i]\n",
+    "    ax.scatter(lon, lat, c='steelblue', s=100, zorder=5)\n",
+    "    ax.annotate(f'{nomes[i]}\\n({demandas[i]}kg)', (lon, lat),\n",
+    "                textcoords='offset points', xytext=(8, 8), fontsize=7)\n",
+    "\n",
+    "# Rotas\n",
+    "for k in veiculos:\n",
+    "    rota = rotas[k]\n",
+    "    cor = cores[k % len(cores)]\n",
+    "    for idx in range(len(rota) - 1):\n",
+    "        i, j = rota[idx], rota[idx + 1]\n",
+    "        lat_i, lon_i = coordenadas_gps[i]\n",
+    "        lat_j, lon_j = coordenadas_gps[j]\n",
+    "        ax.annotate('', xy=(lon_j, lat_j), xytext=(lon_i, lat_i),\n",
+    "                     arrowprops=dict(arrowstyle='->', color=cor, lw=2))\n",
+    "    carga = sum(demandas[i] for i in rota if i != 0)\n",
+    "    ax.plot([], [], color=cor, lw=2, label=f'Veículo {k+1} ({carga}kg)')\n",
+    "\n",
+    "ax.set_title('Rotas Otimizadas — CVRP (Distâncias Reais)')\n",
+    "ax.set_xlabel('Longitude')\n",
+    "ax.set_ylabel('Latitude')\n",
+    "ax.legend()\n",
+    "ax.grid(True, alpha=0.3)\n",
+    "plt.tight_layout()\n",
+    "plt.show()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

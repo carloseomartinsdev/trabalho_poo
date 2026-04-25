@@ -1,0 +1,76 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 11. Resumo dos Resultados"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print('=' * 60)\n",
+    "print('RESUMO FINAL DOS RESULTADOS')\n",
+    "print('=' * 60)\n",
+    "print(f'\\n📊 Cenário Base (2 veículos, 10 clientes):')\n",
+    "print(f'   Distância otimizada: {dist_otimizada} km')\n",
+    "print(f'   Distância manual:    {round(dist_manual, 2)} km')\n",
+    "print(f'   Economia:            {economia}%')\n",
+    "print(f'\\n📊 Cenário A — 3 veículos:')\n",
+    "print(f'   Distância: {dist_3v} km (redução de {round((1 - dist_3v/dist_otimizada)*100,1)}%)')\n",
+    "print(f'\\n📊 Cenário B — +1 cliente:')\n",
+    "print(f'   Distância: {dist_11c} km (aumento de {round((dist_11c/dist_otimizada-1)*100,1)}%)')\n",
+    "print(f'\\n📊 Cenário C — 1 veículo:')\n",
+    "if demanda_total > CAPACIDADE:\n",
+    "    print(f'   INVIÁVEL — demanda ({demanda_total}kg) > capacidade ({CAPACIDADE}kg)')\n",
+    "else:\n",
+    "    print(f'   Distância: {dist_1v} km (aumento de {round((dist_1v/dist_otimizada-1)*100,1)}%)')\n",
+    "print('=' * 60)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 12. Conclusões\n",
+    "\n",
+    "**Insights descobertos:**\n",
+    "\n",
+    "1. **Decisão subótima:** A rota manual gera uma distância significativamente maior que a rota otimizada, demonstrando o valor da otimização matemática.\n",
+    "\n",
+    "2. **Trade-off revelado:** Adicionar um 3º veículo reduz a distância, mas o ganho precisa ser comparado com o custo operacional adicional (motorista, combustível, manutenção).\n",
+    "\n",
+    "3. **Gargalo escondido:** A capacidade dos veículos é a restrição que mais impacta a distribuição dos clientes entre as rotas.\n",
+    "\n",
+    "4. **Viabilidade:** Com apenas 1 veículo, dependendo da demanda total, o cenário pode ser inviável — reforçando a necessidade da frota mínima de 2 veículos.\n",
+    "\n",
+    "**Limitações do modelo:**\n",
+    "- Não considera trânsito, tempo de descarga ou janelas de horário\n",
+    "- Distâncias euclidianas (linha reta), não distâncias reais de ruas\n",
+    "\n",
+    "**Próximos passos:**\n",
+    "- Incluir janelas de tempo (VRPTW)\n",
+    "- Usar distâncias reais via API de mapas\n",
+    "- Testar com dados reais da operação\n",
+    "- Avaliar heurísticas (Genetic Algorithm, Simulated Annealing) para instâncias maiores"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.10.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

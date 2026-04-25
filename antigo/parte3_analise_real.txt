@@ -1,0 +1,235 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 9. Comparação: Rota Manual vs Otimizada"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "clientes_shuffled = list(clientes)\n",
+    "random.shuffle(clientes_shuffled)\n",
+    "meio = len(clientes_shuffled) // 2\n",
+    "rota_manual = {\n",
+    "    0: [0] + clientes_shuffled[:meio] + [0],\n",
+    "    1: [0] + clientes_shuffled[meio:] + [0]\n",
+    "}\n",
+    "\n",
+    "def calcular_distancia_rota(rota):\n",
+    "    return sum(dist[rota[i]][rota[i+1]] for i in range(len(rota)-1))\n",
+    "\n",
+    "dist_manual = sum(calcular_distancia_rota(rota_manual[k]) for k in veiculos)\n",
+    "custo_manual_dia = round(dist_manual * CUSTO_POR_KM, 2)\n",
+    "custo_otimizado_dia = round(dist_otimizada * CUSTO_POR_KM, 2)\n",
+    "economia_dia = round(custo_manual_dia - custo_otimizado_dia, 2)\n",
+    "economia_pct = round((1 - dist_otimizada / dist_manual) * 100, 1)\n",
+    "economia_mes = round(economia_dia * DIAS_UTEIS_MES, 2)\n",
+    "economia_ano = round(economia_dia * DIAS_UTEIS_MES * 12, 2)\n",
+    "\n",
+    "# Custos totais mensais (km + salários)\n",
+    "salarios_2v = N_VEICULOS * SALARIO_MOTORISTA\n",
+    "custo_total_manual_mes = round(custo_manual_dia * DIAS_UTEIS_MES + salarios_2v, 2)\n",
+    "custo_total_otimizado_mes = round(custo_otimizado_dia * DIAS_UTEIS_MES + salarios_2v, 2)\n",
+    "\n",
+    "print('=' * 65)\n",
+    "print('COMPARAÇÃO: ROTA MANUAL vs OTIMIZADA')\n",
+    "print('=' * 65)\n",
+    "for k in veiculos:\n",
+    "    print(f'\\nRota Manual Veículo {k+1}: {\" → \".join(nomes[i] for i in rota_manual[k])}')\n",
+    "    d = round(calcular_distancia_rota(rota_manual[k]), 2)\n",
+    "    print(f'  Distância: {d} km | Custo: R$ {round(d * CUSTO_POR_KM, 2)}')\n",
+    "for k in veiculos:\n",
+    "    print(f'\\nRota Otimizada Veículo {k+1}: {\" → \".join(nomes[i] for i in rotas[k])}')\n",
+    "    d = round(calcular_distancia_rota(rotas[k]), 2)\n",
+    "    print(f'  Distância: {d} km | Custo: R$ {round(d * CUSTO_POR_KM, 2)}')\n",
+    "print(f'\\n{\"─\" * 65}')\n",
+    "print(f'Distância total MANUAL:    {round(dist_manual, 2)} km → R$ {custo_manual_dia}/dia')\n",
+    "print(f'Distância total OTIMIZADA: {dist_otimizada} km → R$ {custo_otimizado_dia}/dia')\n",
+    "print(f'Economia por viagem: R$ {economia_dia} ({economia_pct}%)')\n",
+    "print(f'Economia mensal (km): R$ {economia_mes}')\n",
+    "print(f'Economia anual (km): R$ {economia_ano}')\n",
+    "print(f'\\nCusto mensal total (manual):    R$ {custo_total_manual_mes} ({N_VEICULOS} motoristas × R$ {SALARIO_MOTORISTA} + km)')\n",
+    "print(f'Custo mensal total (otimizado): R$ {custo_total_otimizado_mes} ({N_VEICULOS} motoristas × R$ {SALARIO_MOTORISTA} + km)')\n",
+    "print('=' * 65)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 10. Análise de Sensibilidade"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def resolver_cvrp(n_veiculos, coords_gps, dem, cap, nomes_pontos, matriz_dist):\n",
+    "    n = len(coords_gps)\n",
+    "    cli = list(range(1, n))\n",
+    "    pts = list(range(n))\n",
+    "    veics = list(range(n_veiculos))\n",
+    "\n",
+    "    m = LpProblem(f'CVRP_{n_veiculos}v', LpMinimize)\n",
+    "    xv = LpVariable.dicts('x', (pts, pts, veics), cat='Binary')\n",
+    "    uv = LpVariable.dicts('u', (cli, veics), lowBound=1, upBound=len(cli), cat='Continuous')\n",
+    "\n",
+    "    m += lpSum(matriz_dist[i][j] * xv[i][j][k] for i in pts for j in pts for k in veics if i != j)\n",
+    "\n",
+    "    for j in cli:\n",
+    "        m += lpSum(xv[i][j][k] for i in pts for k in veics if i != j) == 1\n",
+    "    for k in veics:\n",
+    "        m += lpSum(xv[0][j][k] for j in cli) <= 1\n",
+    "        m += lpSum(xv[j][0][k] for j in cli) <= 1\n",
+    "    for k in veics:\n",
+    "        for j in cli:\n",
+    "            m += lpSum(xv[i][j][k] for i in pts if i != j) == lpSum(xv[j][i][k] for i in pts if i != j)\n",
+    "    for k in veics:\n",
+    "        m += lpSum(dem[j] * lpSum(xv[i][j][k] for i in pts if i != j) for j in cli) <= cap\n",
+    "    for k in veics:\n",
+    "        for i in cli:\n",
+    "            for j in cli:\n",
+    "                if i != j:\n",
+    "                    m += uv[i][k] - uv[j][k] + len(cli) * xv[i][j][k] <= len(cli) - 1\n",
+    "\n",
+    "    m.solve(PULP_CBC_CMD(msg=0))\n",
+    "    rotas_r = extrair_rotas(xv, pts, cli, veics)\n",
+    "    return m, rotas_r"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Cenário A: 3 veículos em vez de 2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "modelo_3v, rotas_3v = resolver_cvrp(3, coordenadas_gps, demandas, CAPACIDADE, nomes, dist)\n",
+    "dist_3v = round(value(modelo_3v.objective), 2)\n",
+    "custo_3v_dia = round(dist_3v * CUSTO_POR_KM, 2)\n",
+    "salarios_3v = 3 * SALARIO_MOTORISTA\n",
+    "custo_total_3v_mes = round(custo_3v_dia * DIAS_UTEIS_MES + salarios_3v, 2)\n",
+    "economia_km_3v_mes = round((custo_otimizado_dia - custo_3v_dia) * DIAS_UTEIS_MES, 2)\n",
+    "custo_extra_motorista = SALARIO_MOTORISTA\n",
+    "saldo_3v = round(economia_km_3v_mes - custo_extra_motorista, 2)\n",
+    "\n",
+    "print('=' * 65)\n",
+    "print('CENÁRIO A: 3 VEÍCULOS')\n",
+    "print('=' * 65)\n",
+    "print(f'Distância com 2 veículos: {dist_otimizada} km → R$ {custo_otimizado_dia}/dia')\n",
+    "print(f'Distância com 3 veículos: {dist_3v} km → R$ {custo_3v_dia}/dia')\n",
+    "print(f'Redução de distância: {round((1 - dist_3v / dist_otimizada) * 100, 1)}%')\n",
+    "print(f'\\nEconomia em km/mês: R$ {economia_km_3v_mes}')\n",
+    "print(f'Custo extra 3º motorista: R$ {custo_extra_motorista}/mês')\n",
+    "print(f'Saldo mensal: R$ {saldo_3v}')\n",
+    "print(f'\\nCusto mensal total (2 veículos): R$ {custo_total_otimizado_mes}')\n",
+    "print(f'Custo mensal total (3 veículos): R$ {custo_total_3v_mes}')\n",
+    "if saldo_3v > 0:\n",
+    "    print(f'\\n✅ COMPENSA adicionar o 3º veículo (economia líquida: R$ {saldo_3v}/mês)')\n",
+    "else:\n",
+    "    print(f'\\n❌ NÃO COMPENSA adicionar o 3º veículo (prejuízo: R$ {abs(saldo_3v)}/mês)')\n",
+    "print('=' * 65)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Cenário B: +1 cliente novo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Adicionar um cliente fictício próximo à região\n",
+    "coord_novo = (-3.85, -38.55)\n",
+    "demanda_novo = random.randint(40, 100)\n",
+    "coords_16 = coordenadas_gps + [coord_novo]\n",
+    "demandas_16 = demandas + [demanda_novo]\n",
+    "nomes_16 = nomes + ['C16']\n",
+    "\n",
+    "# Recalcular matriz de distâncias com o novo ponto\n",
+    "try:\n",
+    "    dist_16 = obter_matriz_distancias_osrm(coords_16)\n",
+    "except:\n",
+    "    def distancia_euclidiana_km(p1, p2):\n",
+    "        dlat = (p1[0] - p2[0]) * 111\n",
+    "        dlon = (p1[1] - p2[1]) * 111 * np.cos(np.radians((p1[0] + p2[0]) / 2))\n",
+    "        return round(np.sqrt(dlat**2 + dlon**2), 2)\n",
+    "    n16 = len(coords_16)\n",
+    "    dist_16 = [[distancia_euclidiana_km(coords_16[i], coords_16[j]) for j in range(n16)] for i in range(n16)]\n",
+    "\n",
+    "print(f'Novo cliente C16: coordenadas {coord_novo}, demanda {demanda_novo}kg')\n",
+    "\n",
+    "modelo_16c, rotas_16c = resolver_cvrp(2, coords_16, demandas_16, CAPACIDADE, nomes_16, dist_16)\n",
+    "dist_16c = round(value(modelo_16c.objective), 2)\n",
+    "\n",
+    "print(f'\\nDistância com 15 clientes: {dist_otimizada} km')\n",
+    "print(f'Distância com 16 clientes: {dist_16c} km')\n",
+    "print(f'Aumento: {round((dist_16c / dist_otimizada - 1) * 100, 1)}%')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Cenário C: apenas 1 veículo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "demanda_total = sum(demandas)\n",
+    "print(f'Demanda total: {demanda_total}kg | Capacidade 1 veículo: {CAPACIDADE}kg')\n",
+    "\n",
+    "if demanda_total > CAPACIDADE:\n",
+    "    print(f'\\n⚠️ INVIÁVEL! Demanda total ({demanda_total}kg) excede capacidade de 1 veículo ({CAPACIDADE}kg)')\n",
+    "    print('Isso demonstra que a frota de 2 veículos é necessária.')\n",
+    "else:\n",
+    "    modelo_1v, rotas_1v = resolver_cvrp(1, coordenadas_gps, demandas, CAPACIDADE, nomes, dist)\n",
+    "    dist_1v = round(value(modelo_1v.objective), 2)\n",
+    "    custo_1v_dia = round(dist_1v * CUSTO_POR_KM, 2)\n",
+    "    salarios_1v = 1 * SALARIO_MOTORISTA\n",
+    "    custo_total_1v_mes = round(custo_1v_dia * DIAS_UTEIS_MES + salarios_1v, 2)\n",
+    "    print(f'\\nDistância com 2 veículos: {dist_otimizada} km')\n",
+    "    print(f'Distância com 1 veículo:  {dist_1v} km')\n",
+    "    print(f'Aumento de distância: {round((dist_1v / dist_otimizada - 1) * 100, 1)}%')\n",
+    "    print(f'\\nCusto mensal total (2 veículos): R$ {custo_total_otimizado_mes}')\n",
+    "    print(f'Custo mensal total (1 veículo):  R$ {custo_total_1v_mes}')"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.10.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

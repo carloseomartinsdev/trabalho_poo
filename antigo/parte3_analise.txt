@@ -1,0 +1,216 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 9. Comparação: Rota Manual vs Otimizada"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "clientes_shuffled = list(clientes)\n",
+    "random.shuffle(clientes_shuffled)\n",
+    "meio = len(clientes_shuffled) // 2\n",
+    "rota_manual = {\n",
+    "    0: [0] + clientes_shuffled[:meio] + [0],\n",
+    "    1: [0] + clientes_shuffled[meio:] + [0]\n",
+    "}\n",
+    "\n",
+    "def calcular_distancia_rota(rota):\n",
+    "    return sum(dist[rota[i]][rota[i+1]] for i in range(len(rota)-1))\n",
+    "\n",
+    "dist_manual = sum(calcular_distancia_rota(rota_manual[k]) for k in veiculos)\n",
+    "dist_otimizada = round(value(modelo.objective), 2)\n",
+    "economia = round((1 - dist_otimizada / dist_manual) * 100, 1)\n",
+    "\n",
+    "print('=' * 55)\n",
+    "print('COMPARAÇÃO: ROTA MANUAL vs OTIMIZADA')\n",
+    "print('=' * 55)\n",
+    "for k in veiculos:\n",
+    "    print(f'\\nRota Manual Veículo {k+1}: {\" → \".join(nomes[i] for i in rota_manual[k])}')\n",
+    "    print(f'  Distância: {round(calcular_distancia_rota(rota_manual[k]), 2)} km')\n",
+    "for k in veiculos:\n",
+    "    print(f'\\nRota Otimizada Veículo {k+1}: {\" → \".join(nomes[i] for i in rotas[k])}')\n",
+    "    print(f'  Distância: {round(calcular_distancia_rota(rotas[k]), 2)} km')\n",
+    "print(f'\\n{\"─\" * 55}')\n",
+    "print(f'Distância total MANUAL:    {round(dist_manual, 2)} km')\n",
+    "print(f'Distância total OTIMIZADA: {dist_otimizada} km')\n",
+    "print(f'Economia: {economia}%')\n",
+    "print('=' * 55)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, axes = plt.subplots(1, 2, figsize=(16, 7))\n",
+    "\n",
+    "for ax, titulo, rotas_plot in [(axes[0], 'Rota Manual', rota_manual), (axes[1], 'Rota Otimizada', rotas)]:\n",
+    "    ax.scatter(*coordenadas[0], c='red', s=200, zorder=5, marker='s')\n",
+    "    ax.annotate('CD', coordenadas[0], textcoords='offset points', xytext=(8, 8), fontsize=10, fontweight='bold')\n",
+    "    for i in clientes:\n",
+    "        ax.scatter(*coordenadas[i], c='steelblue', s=100, zorder=5)\n",
+    "        ax.annotate(nomes[i], coordenadas[i], textcoords='offset points', xytext=(8, 8), fontsize=8)\n",
+    "    for k in veiculos:\n",
+    "        rota = rotas_plot[k]\n",
+    "        for idx in range(len(rota) - 1):\n",
+    "            i, j = rota[idx], rota[idx + 1]\n",
+    "            ax.annotate('', xy=coordenadas[j], xytext=coordenadas[i],\n",
+    "                         arrowprops=dict(arrowstyle='->', color=cores[k], lw=2))\n",
+    "    d = round(sum(calcular_distancia_rota(rotas_plot[k]) for k in veiculos), 2)\n",
+    "    ax.set_title(f'{titulo}\\nDistância total: {d} km')\n",
+    "    ax.set_xlabel('X (km)')\n",
+    "    ax.set_ylabel('Y (km)')\n",
+    "    ax.grid(True, alpha=0.3)\n",
+    "\n",
+    "plt.tight_layout()\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 10. Análise de Sensibilidade"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def resolver_cvrp(n_veiculos, coords, dem, cap, nomes_pontos):\n",
+    "    n = len(coords)\n",
+    "    cli = list(range(1, n))\n",
+    "    pts = list(range(n))\n",
+    "    veics = list(range(n_veiculos))\n",
+    "    d = [[distancia(coords[i], coords[j]) for j in range(n)] for i in range(n)]\n",
+    "\n",
+    "    m = LpProblem(f'CVRP_{n_veiculos}v', LpMinimize)\n",
+    "    xv = LpVariable.dicts('x', (pts, pts, veics), cat='Binary')\n",
+    "    uv = LpVariable.dicts('u', (cli, veics), lowBound=1, upBound=len(cli), cat='Continuous')\n",
+    "\n",
+    "    m += lpSum(d[i][j] * xv[i][j][k] for i in pts for j in pts for k in veics if i != j)\n",
+    "\n",
+    "    for j in cli:\n",
+    "        m += lpSum(xv[i][j][k] for i in pts for k in veics if i != j) == 1\n",
+    "    for k in veics:\n",
+    "        m += lpSum(xv[0][j][k] for j in cli) <= 1\n",
+    "        m += lpSum(xv[j][0][k] for j in cli) <= 1\n",
+    "    for k in veics:\n",
+    "        for j in cli:\n",
+    "            m += lpSum(xv[i][j][k] for i in pts if i != j) == lpSum(xv[j][i][k] for i in pts if i != j)\n",
+    "    for k in veics:\n",
+    "        m += lpSum(dem[j] * lpSum(xv[i][j][k] for i in pts if i != j) for j in cli) <= cap\n",
+    "    for k in veics:\n",
+    "        for i in cli:\n",
+    "            for j in cli:\n",
+    "                if i != j:\n",
+    "                    m += uv[i][k] - uv[j][k] + len(cli) * xv[i][j][k] <= len(cli) - 1\n",
+    "\n",
+    "    m.solve(PULP_CBC_CMD(msg=0))\n",
+    "    rotas_r = extrair_rotas(xv, pts, cli, veics)\n",
+    "    return m, rotas_r"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Cenário A: 3 veículos em vez de 2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "modelo_3v, rotas_3v = resolver_cvrp(3, coordenadas, demandas, CAPACIDADE, nomes)\n",
+    "dist_3v = round(value(modelo_3v.objective), 2)\n",
+    "\n",
+    "print(f'Distância com 2 veículos: {dist_otimizada} km')\n",
+    "print(f'Distância com 3 veículos: {dist_3v} km')\n",
+    "print(f'Redução: {round((1 - dist_3v / dist_otimizada) * 100, 1)}%')\n",
+    "print(f'\\nCompensa adicionar 1 veículo? Depende do custo operacional vs economia de {round(dist_otimizada - dist_3v, 2)} km')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Cenário B: +1 cliente novo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "coord_novo = (random.randint(0, 100), random.randint(0, 100))\n",
+    "demanda_novo = random.randint(40, 150)\n",
+    "coords_11 = coordenadas + [coord_novo]\n",
+    "demandas_11 = demandas + [demanda_novo]\n",
+    "nomes_11 = nomes + ['C11']\n",
+    "\n",
+    "print(f'Novo cliente C11: coordenadas {coord_novo}, demanda {demanda_novo}kg')\n",
+    "\n",
+    "modelo_11c, rotas_11c = resolver_cvrp(2, coords_11, demandas_11, CAPACIDADE, nomes_11)\n",
+    "dist_11c = round(value(modelo_11c.objective), 2)\n",
+    "\n",
+    "print(f'\\nDistância com 10 clientes: {dist_otimizada} km')\n",
+    "print(f'Distância com 11 clientes: {dist_11c} km')\n",
+    "print(f'Aumento: {round((dist_11c / dist_otimizada - 1) * 100, 1)}%')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Cenário C: apenas 1 veículo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "demanda_total = sum(demandas)\n",
+    "print(f'Demanda total: {demanda_total}kg | Capacidade 1 veículo: {CAPACIDADE}kg')\n",
+    "\n",
+    "if demanda_total > CAPACIDADE:\n",
+    "    print(f'\\n⚠️ INVIÁVEL! Demanda total ({demanda_total}kg) excede capacidade de 1 veículo ({CAPACIDADE}kg)')\n",
+    "    print('Isso demonstra que a frota de 2 veículos é necessária.')\n",
+    "else:\n",
+    "    modelo_1v, rotas_1v = resolver_cvrp(1, coordenadas, demandas, CAPACIDADE, nomes)\n",
+    "    dist_1v = round(value(modelo_1v.objective), 2)\n",
+    "    print(f'\\nDistância com 2 veículos: {dist_otimizada} km')\n",
+    "    print(f'Distância com 1 veículo:  {dist_1v} km')\n",
+    "    print(f'Aumento: {round((dist_1v / dist_otimizada - 1) * 100, 1)}%')"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.10.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
