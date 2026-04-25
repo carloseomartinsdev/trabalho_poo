@@ -60,7 +60,8 @@
         </p>
         <br>
         <p style="font-size: 0.7em; color: #999;">
-            <strong>[Seu Nome]</strong> — [Data]
+            <strong>Carlos Eduardo Martins</strong> &amp; <strong>Julio Ferreira</strong><br>
+            25/04/2026
         </p>
     </section>
 
@@ -116,15 +117,14 @@
         <table>
             <tr><th>Parâmetro</th><th>Valor</th><th>Impacto</th></tr>
             <tr><td>⛽ Custo por km</td><td style="text-align:right;"><strong>R$ 3,50</strong></td><td>Combustível + manutenção + depreciação</td></tr>
-            <tr><td>👤 Salário/motorista</td><td style="text-align:right;"><strong>R$ 3.000/mês</strong></td><td>Custo fixo: cada veículo = 1 motorista</td></tr>
+            <tr><td>🚛 Frota atual</td><td style="text-align:right;"><strong>2 veículos</strong></td><td>Capacidade: 500kg cada</td></tr>
+            <tr><td>📦 Demanda (teste)</td><td style="text-align:right;"><strong>973 kg</strong></td><td>15 clientes (38–114kg cada)</td></tr>
             <tr><td>📅 Dias úteis/mês</td><td style="text-align:right;"><strong>22</strong></td><td>Base para projeção financeira</td></tr>
-            <tr><td>🕐 Vel. média Fortaleza</td><td style="text-align:right;"><strong>25 km/h</strong></td><td>Tempo no trânsito = custo oculto</td></tr>
         </table>
         <br>
         <div class="destaque-verde">
-            <strong>Custo fixo mensal:</strong> 2 motoristas × R$ 3.000 = <strong>R$ 6.000</strong><br>
-            <strong>Custo variável:</strong> distância diária × R$ 3,50 × 22 dias<br>
-            <strong>Custo oculto:</strong> tempo do motorista no trânsito (R$ 17,05/hora)
+            <strong>Custo variável:</strong> distância total diária × R$ 3,50 × 22 dias<br><br>
+            <strong>Pergunta-chave:</strong> Quanto a empresa pode economizar otimizando as rotas?
         </div>
     </section>
 
@@ -218,14 +218,14 @@
         <div class="cols">
             <div class="col" style="text-align:center;">
                 <div class="card">
-                    <small>Rota Manual</small><br>
-                    <span class="numero-vermelho">343.43 km</span><br>
-                    <small style="color:var(--cinza);">R$ 1.202,01/dia</small>
+                    <small>Rota Manual (vizinho mais próximo)</small><br>
+                    <span class="numero-vermelho">230.99 km</span><br>
+                    <small style="color:var(--cinza);">R$ 808,47/dia</small>
                 </div>
             </div>
             <div class="col" style="text-align:center;">
                 <div class="card">
-                    <small>Rota Otimizada</small><br>
+                    <small>Rota Otimizada (CVRP)</small><br>
                     <span class="numero-verde">191.51 km</span><br>
                     <small style="color:var(--cinza);">R$ 670,28/dia</small>
                 </div>
@@ -233,21 +233,27 @@
             <div class="col" style="text-align:center;">
                 <div class="card">
                     <small>Economia</small><br>
-                    <span class="numero-grande">44.2%</span><br>
-                    <small style="color:var(--cinza);">R$ 531,73/dia</small>
+                    <span class="numero-grande">17.1%</span><br>
+                    <small style="color:var(--cinza);">R$ 138,19/dia</small>
                 </div>
             </div>
         </div>
         <br>
         <div class="destaque-verde">
-            <strong>💰 R$ 531,73/dia → R$ 11.698/mês → R$ 140.376/ano</strong><br>
-            <small>Custo mensal total: Manual R$ 32.444 vs Otimizado R$ 20.746</small>
+            <strong>💰 R$ 138,19/dia → R$ 3.040/mês → R$ 36.482/ano</strong><br>
+            <small>Custo mensal total: Manual R$ 23.786 vs Otimizado R$ 20.746</small><br>
+            <small style="color:var(--cinza);">Rota manual simulada com método do vizinho mais próximo (nearest neighbor) — simula motorista experiente</small>
         </div>
     </section>
 
     <!-- SLIDE: TEMPO NO TRÂNSITO -->
     <section>
         <p class="pergunta">E se considerarmos o tempo do motorista no trânsito?</p>
+        <br>
+        <div class="destaque">
+            <strong>Novo parâmetro:</strong> Velocidade média em Fortaleza/CE<br>
+            <strong>Custo hora motorista:</strong> R$ 3.000/mês ÷ 22 dias ÷ 8h = <strong>R$ 17,05/hora</strong>
+        </div>
         <br>
         <table>
             <tr><th>Cenário de trânsito</th><th>Vel. Média</th><th>Tempo Manual</th><th>Tempo Otimizado</th><th>Economia</th></tr>
@@ -312,6 +318,10 @@
     <!-- SLIDE: 3 VEÍCULOS - FINANCEIRO -->
     <section>
         <p class="pergunta">Mas essa redução compensa o custo do 3º motorista?</p>
+        <br>
+        <div class="destaque">
+            <strong>Novo parâmetro:</strong> Salário por motorista = <strong>R$ 3.000/mês</strong> (custo fixo por veículo)
+        </div>
         <br>
         <div class="cols">
             <div class="col" style="text-align:center;">
@@ -421,12 +431,13 @@
         <p class="pergunta">O que aprendemos com este projeto?</p>
         <br>
         <div class="destaque">
-            <strong>🔍 Decisão subótima:</strong> A rota manual desperdiça <strong>44.2%</strong> da distância.
-            A otimização gera economia de <strong>R$ 140 mil/ano</strong> só em km.
+            <strong>🔍 Decisão subótima:</strong> Mesmo com motorista experiente (vizinho mais próximo),
+            a rota manual gera <strong>17.1%</strong> mais distância.
+            A otimização gera economia de <strong>R$ 36 mil/ano</strong> só em km.
         </div>
         <div class="destaque-verde">
             <strong>⏱️ Custo oculto:</strong> Considerando o tempo no trânsito de Fortaleza,
-            a economia sobe para <strong>~R$ 167 mil/ano</strong> (19% a mais).
+            a economia sobe para <strong>~R$ 52 mil/ano</strong> (~45% a mais).
         </div>
         <div class="destaque-vermelho">
             <strong>⚖️ Trade-off:</strong> Adicionar um 3º veículo reduz apenas 1.4% da distância,
@@ -438,21 +449,6 @@
         </div>
     </section>
 
-    <!-- SLIDE: VALIDAÇÃO -->
-    <section>
-        <p class="pergunta">Alguém da área validou esses resultados?</p>
-        <br>
-        <div class="card" style="border-left: 4px solid var(--verde);">
-            <strong>Depoimento — [Nome, Cargo]</strong>
-            <br><br>
-            <em>"[Inserir depoimento aqui — reação da pessoa ao ver os resultados.
-            Faz sentido? Implementaria? O que mudaria?]"</em>
-        </div>
-        <br>
-        <div class="destaque">
-            <strong>Formato aceito:</strong> print de WhatsApp, trecho de e-mail ou relato verbal.
-        </div>
-    </section>
 
     <!-- SLIDE: LIMITAÇÕES E PRÓXIMOS PASSOS -->
     <section>
@@ -485,7 +481,7 @@
         <h2>🙏 Obrigado!</h2>
         <br>
         <div class="card" style="text-align:center;">
-            <p style="font-size:1.2em;"><strong>[Seu Nome]</strong></p>
+            <p style="font-size:1.2em;"><strong>Carlos Eduardo Martins</strong> &amp; <strong>Julio Ferreira</strong></p>
             <p style="color:var(--cinza);">
                 MBA em Ciência de Dados — UNIFOR<br>
                 Pesquisa Operacional e Otimização em IA
